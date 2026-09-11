@@ -396,6 +396,7 @@ local function ShowVersions()
     ActionBtn.Visible = false
     SubTitle.Text = "Выберите версию для запуска"
     StatusText.Text = ""
+    StatusText.TextColor3 = Colors.TextDim
 end
 
 local function ShowKeyInput(version)
@@ -406,8 +407,19 @@ local function ShowKeyInput(version)
     ActionBtn.Visible = true
     ActionBtn.Text = "ВОЙТИ"
     SubTitle.Text = "Версия: " .. version
-    KeyInput.Text = ""
     StatusText.Text = ""
+    StatusText.TextColor3 = Colors.TextDim
+
+    -- Автоподстановка сохранённого ключа для этой версии
+    local savedVersion, savedKey = LoadKey()
+    if savedVersion == version and savedKey and CheckKey(version, savedKey) then
+        KeyInput.Text = savedKey
+        StatusText.Text = "Ключ подставлен из сохранения"
+        StatusText.TextColor3 = Colors.Success
+    else
+        KeyInput.Text = ""
+    end
+
     KeyInput:CaptureFocus()
 end
 
@@ -525,15 +537,14 @@ KeyBackBtn.MouseButton1Click:Connect(function()
     ShowVersions()
 end)
 
+-- Просто показываем подсказку, что ключ сохранён, но НЕ запускаем автоматически
 task.spawn(function()
     task.wait(0.5)
     local version, key = LoadKey()
     if version and key and KEYS[version] then
         if CheckKey(version, key) then
-            StatusText.Text = "Найден сохранённый ключ (" .. version .. ")"
+            StatusText.Text = "Сохранён ключ (" .. version .. "). Выберите версию."
             StatusText.TextColor3 = Colors.Success
-            task.wait(0.8)
-            DoLoad(version)
         else
             ClearKey()
         end
